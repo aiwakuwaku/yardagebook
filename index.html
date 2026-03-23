@@ -3,90 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Golf Yardage PWA</title>
+    <title>Golf Yardage</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* スクロールバー非表示 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* スナップスクロール */
-        .hole-scroll { scroll-snap-type: x mandatory; }
-        .hole-item { scroll-snap-align: center; }
-        /* アクティブ状態 */
         .active-hole { background-color: #16a34a !important; color: white !important; transform: scale(1.1); }
-        /* 画像全画面表示用 */
-        #fullscreen-overlay { display: none; }
-        #fullscreen-overlay.active { display: flex; }
+        /* 切り替えボタンのアクティブ状態 */
+        .view-btn-active { background-color: #16a34a !important; color: white !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+        .view-btn-inactive { background-color: #374151 !important; color: #9ca3af !important; }
     </style>
 </head>
 <body class="bg-gray-900 text-white overflow-hidden h-screen flex flex-col">
 
-    <!-- Header: コース選択 -->
-    <header class="bg-gray-800 p-3 shadow-lg flex justify-between items-center">
+    <!-- Header -->
+    <header class="bg-gray-800 p-3 flex justify-between items-center border-b border-gray-700">
         <div class="flex-1 overflow-hidden">
-            <h1 id="display-course" class="text-xs text-gray-400 truncate">Course Not Selected</h1>
-            <div id="display-section" class="text-lg font-bold leading-none">Select CSV →</div>
+            <h1 id="display-course" class="text-[10px] text-gray-400 truncate uppercase tracking-widest">Select Course</h1>
+            <div id="display-section" class="text-lg font-bold leading-tight text-green-400">コース未選択</div>
         </div>
-        <button onclick="toggleSettings()" class="p-2 bg-gray-700 rounded-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <button onclick="toggleSettings()" class="p-2 bg-gray-700 rounded-full active:bg-gray-600">
+            <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
         </button>
     </header>
 
-    <!-- Hole Navigation: 横スクロール -->
-    <nav class="bg-gray-800 border-b border-gray-700">
-        <div id="hole-tabs" class="flex overflow-x-auto no-scrollbar py-3 px-4 gap-4 hole-scroll">
-            <!-- JSで H1-H9 を生成 -->
+    <!-- Hole Navigation -->
+    <nav class="bg-gray-800">
+        <div id="hole-tabs" class="flex overflow-x-auto no-scrollbar py-3 px-4 gap-3">
+            <!-- JSで1-9生成 -->
         </div>
     </nav>
 
-    <!-- Main Content: Yardage Image -->
+    <!-- Main Yardage Image -->
     <main class="flex-1 relative bg-black flex items-center justify-center overflow-hidden" onclick="openFullscreen()">
-        <img id="main-image" src="" class="max-h-full max-w-full object-contain" alt="Yardage View">
-        
-        <!-- Hole/Par Info Overlay -->
-        <div class="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-            <div id="info-hole" class="text-3xl font-black italic italic">H1</div>
-            <div id="info-par" class="text-sm font-bold text-green-400">PAR 4</div>
+        <!-- 読み込み中表示 -->
+        <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center bg-gray-900 z-0">
+            <div class="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full"></div>
         </div>
+        
+        <img id="main-image" src="" class="max-h-full max-w-full object-contain z-10 relative shadow-2xl" 
+             onload="document.getElementById('loading-spinner').style.display='none'"
+             onerror="handleImgError(this)">
+        
+        <!-- Info Overlay -->
+        <div class="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/10 shadow-xl">
+            <div id="info-hole" class="text-4xl font-black italic italic leading-none">H-</div>
+            <div id="info-par" class="text-xs font-bold text-green-400 mt-1 uppercase tracking-tighter text-center">PAR -</div>
+        </div>
+    </header>
 
-        <!-- Zoom Hint -->
-        <div class="absolute bottom-4 right-4 text-white/40 text-xs">Tap to zoom</div>
-    </main>
-
-    <!-- Footer: ビュー切り替えボタン -->
-    <footer class="bg-gray-800 grid grid-cols-2 gap-0.5 p-1 border-t border-gray-700">
-        <button onclick="setView('map')" id="btn-map" class="py-4 font-bold text-sm bg-green-700 rounded-l-xl">全体図</button>
-        <button onclick="setView('green')" id="btn-green" class="py-4 font-bold text-sm bg-gray-700 rounded-r-xl">グリーン周り</button>
+    <!-- Footer: ビュー切り替えスイッチ (ここを大きく、分かりやすく修正) -->
+    <footer class="bg-gray-800 p-3 border-t border-gray-700">
+        <div class="flex bg-gray-900 rounded-2xl p-1 gap-1">
+            <button onclick="setView('map')" id="btn-map" class="flex-1 py-4 rounded-xl font-black text-sm transition-all duration-200 view-btn-active">
+                全体図
+            </button>
+            <button onclick="setView('green')" id="btn-green" class="flex-1 py-4 rounded-xl font-black text-sm transition-all duration-200 view-btn-inactive">
+                グリーン
+            </button>
+        </div>
     </footer>
 
-    <!-- Settings Overlay -->
-    <div id="settings-overlay" class="fixed inset-0 bg-black/90 z-50 p-6 hidden flex-col">
-        <div class="flex justify-between items-center mb-8">
+    <!-- Settings (CSV読み込み) -->
+    <div id="settings-overlay" class="fixed inset-0 bg-gray-900/95 z-50 p-8 hidden flex-col">
+        <div class="flex justify-between items-center mb-10">
             <h2 class="text-2xl font-bold">Settings</h2>
-            <button onclick="toggleSettings()" class="text-3xl">&times;</button>
+            <button onclick="toggleSettings()" class="text-4xl text-gray-500">&times;</button>
         </div>
-        
         <div class="space-y-6">
             <div>
-                <label class="block text-sm text-gray-400 mb-2">コース選択</label>
-                <select id="course-select" class="w-full bg-gray-800 p-4 rounded-xl text-lg"></select>
+                <label class="block text-xs text-gray-500 mb-2 font-bold uppercase">Course List</label>
+                <select id="course-select" class="w-full bg-gray-800 p-4 rounded-xl text-lg border border-gray-700 focus:border-green-500 outline-none"></select>
             </div>
             <div>
-                <label class="block text-sm text-gray-400 mb-2">セクション選択</label>
-                <select id="section-select" class="w-full bg-gray-800 p-4 rounded-xl text-lg"></select>
+                <label class="block text-xs text-gray-500 mb-2 font-bold uppercase">Section (OUT/IN)</label>
+                <select id="section-select" class="w-full bg-gray-800 p-4 rounded-xl text-lg border border-gray-700 focus:border-green-500 outline-none"></select>
             </div>
-            <div class="pt-10">
+            <div class="pt-8">
                 <input type="file" id="csv-file" accept=".csv" class="hidden">
-                <button onclick="document.getElementById('csv-file').click()" class="w-full py-4 bg-blue-600 rounded-xl font-bold">CSVデータを読み込む</button>
+                <button onclick="document.getElementById('csv-file').click()" class="w-full py-5 bg-green-600 hover:bg-green-500 active:scale-95 transition-transform rounded-2xl font-bold text-lg shadow-lg">
+                    CSVデータを読み込む
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Fullscreen View -->
+    <!-- Fullscreen Overlay -->
     <div id="fullscreen-overlay" class="fixed inset-0 bg-black z-[60] hidden flex-col items-center justify-center" onclick="closeFullscreen()">
         <img id="fullscreen-image" src="" class="w-full h-full object-contain">
-        <button class="absolute top-6 right-6 text-white bg-black/50 w-12 h-12 rounded-full text-2xl">&times;</button>
     </div>
 
     <script>
@@ -94,29 +99,29 @@
         let state = { course: "", section: "", hole: 1, view: "map" };
 
         function init() {
-            // ホールボタン生成
+            // ホールタブの生成
             const container = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
                 const btn = document.createElement('button');
                 btn.id = `btn-h${i}`;
-                btn.className = `hole-item flex-shrink-0 w-14 h-14 rounded-full bg-gray-700 font-bold text-xl transition-all`;
+                btn.className = `flex-shrink-0 w-12 h-12 rounded-xl bg-gray-700 font-black text-lg transition-all active:scale-90`;
                 btn.innerText = i;
                 btn.onclick = () => setHole(i);
                 container.appendChild(btn);
             }
 
-            // CSV読込処理
+            // CSV読込
             document.getElementById('csv-file').onchange = (e) => {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     parseCSV(ev.target.result);
-                    localStorage.setItem('golf_db', ev.target.result);
+                    localStorage.setItem('golf_db_v2', ev.target.result);
                     toggleSettings();
                 };
                 reader.readAsText(e.target.files[0]);
             };
 
-            const saved = localStorage.getItem('golf_db');
+            const saved = localStorage.getItem('golf_db_v2');
             if(saved) parseCSV(saved);
 
             document.getElementById('course-select').onchange = (e) => {
@@ -148,21 +153,18 @@
         function updateCourseOptions() {
             const sel = document.getElementById('course-select');
             const courses = Object.keys(courseData);
+            if(courses.length === 0) return;
             sel.innerHTML = courses.map(c => `<option value="${c}">${c}</option>`).join('');
-            if(courses.length > 0) {
-                state.course = courses[0];
-                updateSectionOptions();
-            }
+            state.course = courses[0];
+            updateSectionOptions();
         }
 
         function updateSectionOptions() {
             const sel = document.getElementById('section-select');
             const sections = Object.keys(courseData[state.course]);
             sel.innerHTML = sections.map(s => `<option value="${s}">${s}</option>`).join('');
-            if(sections.length > 0) {
-                state.section = sections[0];
-                render();
-            }
+            state.section = sections[0];
+            render();
         }
 
         function setHole(h) {
@@ -170,52 +172,73 @@
             render();
         }
 
+        // ビュー切り替え関数の修正
         function setView(v) {
             state.view = v;
+            console.log("View changed to:", v); // デバッグ用
             render();
         }
 
         function render() {
             if(!state.course || !state.section) return;
 
-            // UI更新
+            // テキスト表示の更新
             document.getElementById('display-course').innerText = state.course;
             document.getElementById('display-section').innerText = state.section;
             document.getElementById('info-hole').innerText = `H${state.hole}`;
             const par = courseData[state.course][state.section][state.hole-1];
             document.getElementById('info-par').innerText = `PAR ${par}`;
 
-            // 画像パス更新 (img/コース名_セクション_H1_map.jpg)
+            // 画像読み込み開始
+            document.getElementById('loading-spinner').style.display = 'flex';
             const imgPath = `img/${state.course}_${state.section}_${state.hole}_${state.view}.jpg`;
-            document.getElementById('main-image').src = imgPath;
-
-            // ボタン状態更新
-            for(let i=1; i<=9; i++) {
-                document.getElementById(`btn-h${i}`).className = `hole-item flex-shrink-0 w-14 h-14 rounded-full bg-gray-700 font-bold text-xl transition-all ${i===state.hole ? 'active-hole' : ''}`;
-            }
-            document.getElementById('btn-map').className = `py-4 font-bold text-sm rounded-l-xl ${state.view==='map' ? 'bg-green-600' : 'bg-gray-700'}`;
-            document.getElementById('btn-green').className = `py-4 font-bold text-sm rounded-r-xl ${state.view==='green' ? 'bg-green-600' : 'bg-gray-700'}`;
+            const mainImg = document.getElementById('main-image');
             
-            // スムーススクロール
-            const activeBtn = document.getElementById(`btn-h${state.hole}`);
-            activeBtn.parentElement.scrollTo({ left: activeBtn.offsetLeft - 80, behavior: 'smooth' });
+            // 重要：パスが同じだとブラウザが更新しないことがあるため、末尾にタイムスタンプを付ける
+            mainImg.src = imgPath + "?t=" + new Date().getTime();
+
+            // ホールボタンのスタイル更新
+            for(let i=1; i<=9; i++) {
+                const el = document.getElementById(`btn-h${i}`);
+                if(i === state.hole) el.classList.add('active-hole');
+                else el.classList.remove('active-hole');
+            }
+
+            // フッターボタンのスタイル更新（ここが選択状態の可視化）
+            const btnMap = document.getElementById('btn-map');
+            const btnGreen = document.getElementById('btn-green');
+            
+            if(state.view === 'map') {
+                btnMap.className = "flex-1 py-4 rounded-xl font-black text-sm transition-all view-btn-active";
+                btnGreen.className = "flex-1 py-4 rounded-xl font-black text-sm transition-all view-btn-inactive";
+            } else {
+                btnMap.className = "flex-1 py-4 rounded-xl font-black text-sm transition-all view-btn-inactive";
+                btnGreen.className = "flex-1 py-4 rounded-xl font-black text-sm transition-all view-btn-active";
+            }
+        }
+
+        function handleImgError(el) {
+            document.getElementById('loading-spinner').style.display = 'none';
+            el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><rect width='400' height='300' fill='%231f2937'/><text x='50%25' y='50%25' fill='%239ca3af' font-family='sans-serif' font-size='14' text-anchor='middle'>画像がありません(${state.view})</text></svg>`;
         }
 
         function toggleSettings() {
             const el = document.getElementById('settings-overlay');
             el.classList.toggle('hidden');
-            el.classList.toggle('flex');
         }
 
         function openFullscreen() {
             const overlay = document.getElementById('fullscreen-overlay');
             const img = document.getElementById('fullscreen-image');
             img.src = document.getElementById('main-image').src;
-            overlay.classList.add('active');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
         }
 
         function closeFullscreen() {
-            document.getElementById('fullscreen-overlay').classList.remove('active');
+            const overlay = document.getElementById('fullscreen-overlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
         }
 
         init();
