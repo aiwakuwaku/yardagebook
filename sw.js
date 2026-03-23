@@ -1,6 +1,7 @@
-const CACHE_NAME = 'golf-yardage-v1';
+const CACHE_NAME = 'golf-yardage-v2';
 const ASSETS = [
   'index.html',
+  'manifest.json',
   'https://cdn.tailwindcss.com'
 ];
 
