@@ -7,41 +7,47 @@
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { height: 100dvh; display: flex; flex-direction: column; background-color: #f3f4f6; margin: 0; font-family: sans-serif; }
+        body { height: 100dvh; display: flex; flex-direction: column; background-color: #f3f4f6; margin: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
         .btn-gray { background-color: #f9fafb; border: 1px solid #d1d5db; color: #374151; }
         .btn-green { background-color: #057a3d; color: white; }
         .btn-red { background-color: #d32f2f; color: white; }
         #index-panel { display: none; }
         #index-panel.active { display: grid; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .section-badge { background-color: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <!-- プレイ画面 -->
+    <!-- プレー画面 -->
     <div id="main-screen" class="flex-1 flex flex-col hidden overflow-hidden bg-black text-white">
         <header class="bg-gray-800 p-2 flex justify-between items-center border-b border-gray-700 shrink-0">
-            <div class="px-2 overflow-hidden">
+            <!-- セクション切り替えエリア (★ここをタップで切り替え) -->
+            <div onclick="cycleSection()" class="flex-1 px-2 overflow-hidden cursor-pointer active:opacity-60">
                 <h1 id="display-course" class="text-[10px] text-gray-400 truncate uppercase tracking-widest">COURSE</h1>
-                <div id="display-section" class="text-base font-bold text-green-400 leading-tight">-</div>
+                <div class="flex items-center gap-1">
+                    <div id="display-section" class="text-lg font-black text-green-400 leading-tight">-</div>
+                    <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                </div>
             </div>
-            <button onclick="showSettings()" class="py-1 px-4 bg-gray-700 rounded-lg text-sm border border-gray-600">終了/変更</button>
+            <button onclick="showSettings()" class="py-1 px-3 bg-gray-700 rounded-lg text-xs border border-gray-600 text-gray-300">設定へ</button>
         </header>
         
         <nav class="bg-gray-800 shrink-0 border-b border-gray-900 overflow-x-auto no-scrollbar py-2 px-4 flex gap-3" id="hole-tabs"></nav>
 
         <main class="flex-1 relative flex items-center justify-center overflow-hidden" onclick="openFullscreen()">
             <img id="main-image" src="" class="max-h-full max-w-full object-contain relative z-10" onerror="handleImgError(this)">
-            <div class="absolute top-4 left-4 z-20 bg-black/60 p-3 rounded-xl border border-white/10">
-                <div id="info-hole" class="text-3xl font-black italic leading-none">H1</div>
+            <!-- ホール・Par情報 -->
+            <div class="absolute top-4 left-4 z-20 bg-black/60 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
+                <div id="info-hole" class="text-4xl font-black italic leading-none">H1</div>
                 <div id="info-par" class="text-[10px] font-bold text-green-400 text-center uppercase mt-1">PAR -</div>
             </div>
         </main>
 
         <footer class="bg-gray-800 p-3 shrink-0 border-t border-gray-700 z-30">
             <div class="flex bg-gray-900 rounded-xl p-1 gap-1 max-w-md mx-auto">
-                <button onclick="setView('map')" id="btn-map" class="flex-1 py-3 rounded-lg font-bold text-sm bg-green-600">全体図</button>
-                <button onclick="setView('green')" id="btn-green" class="flex-1 py-3 rounded-lg font-bold text-sm bg-gray-700 text-gray-400">グリーン</button>
+                <button onclick="setView('map')" id="btn-map" class="flex-1 py-3 rounded-lg font-bold text-sm">全体図</button>
+                <button onclick="setView('green')" id="btn-green" class="flex-1 py-3 rounded-lg font-bold text-sm">グリーン</button>
             </div>
         </footer>
     </div>
@@ -52,40 +58,37 @@
             
             <!-- SELECT COURSE -->
             <div>
-                <label class="text-xs font-bold text-gray-500 mb-1 block uppercase">SELECT COURSE</label>
+                <label class="text-xs font-bold text-gray-500 mb-1 block uppercase tracking-tighter">SELECT COURSE</label>
                 <div class="flex gap-2 mb-2">
-                    <button onclick="toggleIndexPanel()" class="w-1/4 py-3 rounded-lg btn-gray font-medium text-lg shadow-sm">Index</button>
+                    <button onclick="toggleIndexPanel()" class="w-1/4 py-3 rounded-lg btn-gray font-medium text-lg shadow-sm active:bg-gray-200">Index</button>
                     <select id="course-select" onchange="onCourseChange()" class="flex-1 py-3 px-3 rounded-lg btn-gray text-lg shadow-sm outline-none">
                         <option value="">-- Select --</option>
                     </select>
                 </div>
-                
-                <!-- 五十音パネル -->
                 <div id="index-panel" class="grid grid-cols-5 gap-1 bg-white p-2 rounded-lg border mb-2 shadow-inner"></div>
-
                 <input type="text" id="manual-course" placeholder="Course Name (Manual)" class="w-full py-3 px-4 rounded-lg btn-gray text-lg shadow-sm outline-none mb-4">
             </div>
 
-            <!-- SELECT SECTION (★ここを追加) -->
+            <!-- SELECT SECTION -->
             <div>
-                <label class="text-xs font-bold text-gray-500 mb-1 block uppercase">SELECT SECTION</label>
+                <label class="text-xs font-bold text-gray-500 mb-1 block uppercase tracking-tighter">SELECT SECTION</label>
                 <select id="section-select" class="w-full py-3 px-4 rounded-lg btn-gray text-lg shadow-sm outline-none">
                     <option value="">-- Select Section --</option>
                 </select>
             </div>
 
-            <!-- メインボタン -->
+            <!-- START / RESET -->
             <div class="flex gap-2 pt-2">
-                <button onclick="startRound()" class="flex-1 py-4 btn-green rounded-lg font-black text-xl shadow-md active:bg-green-800">START ROUND</button>
-                <button onclick="resetApp()" class="w-1/3 py-4 btn-red rounded-lg font-black text-lg shadow-md active:bg-red-800">RESET</button>
+                <button onclick="startRound()" class="flex-1 py-4 btn-green rounded-lg font-black text-xl shadow-md active:opacity-80">START ROUND</button>
+                <button onclick="resetApp()" class="w-1/3 py-4 btn-red rounded-lg font-black text-lg shadow-md active:opacity-80">RESET</button>
             </div>
 
             <!-- DATA SOURCE -->
             <div class="pt-6">
-                <label class="text-xs font-bold text-gray-500 mb-1 block uppercase">DATA SOURCE</label>
+                <label class="text-xs font-bold text-gray-500 mb-1 block uppercase tracking-tighter">DATA SOURCE</label>
                 <div class="flex gap-2">
-                    <button onclick="loadServerCSV()" class="flex-1 py-3 rounded-lg btn-gray font-bold text-sm shadow-sm">Load Server CSV</button>
-                    <button onclick="document.getElementById('file-input').click()" class="flex-1 py-3 rounded-lg btn-gray font-bold text-sm shadow-sm">Load Local CSV</button>
+                    <button onclick="loadServerCSV()" class="flex-1 py-3 rounded-lg btn-gray font-bold text-xs shadow-sm active:bg-gray-200">Load Server CSV</button>
+                    <button onclick="document.getElementById('file-input').click()" class="flex-1 py-3 rounded-lg btn-gray font-bold text-xs shadow-sm active:bg-gray-200">Load Local CSV</button>
                 </div>
                 <input type="file" id="file-input" accept=".csv" class="hidden" onchange="loadLocalCSV(this)">
             </div>
@@ -94,6 +97,7 @@
         </div>
     </div>
 
+    <!-- フルスクリーン -->
     <div id="fullscreen-overlay" class="fixed inset-0 bg-black z-[200] hidden items-center justify-center" onclick="this.classList.add('hidden')">
         <img id="fullscreen-image" src="" class="w-full h-full object-contain">
     </div>
@@ -104,7 +108,6 @@
         const kana = ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', '全'];
 
         function init() {
-            // ホールタブ
             const container = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
                 const btn = document.createElement('button');
@@ -115,7 +118,6 @@
                 container.appendChild(btn);
             }
 
-            // 五十音パネル
             const panel = document.getElementById('index-panel');
             kana.forEach(char => {
                 const b = document.createElement('button');
@@ -125,11 +127,29 @@
                 panel.appendChild(b);
             });
 
-            const saved = localStorage.getItem('golf_db_v5');
+            const saved = localStorage.getItem('golf_db_v6');
             if(saved) parseCSV(saved);
         }
 
-        // CSV読み込み
+        // セクションをサイクル（切り替え）する関数 (★新機能)
+        function cycleSection() {
+            if(!state.course || !courseData[state.course]) return;
+            const sections = Object.keys(courseData[state.course]);
+            if(sections.length <= 1) return; // 1つしかない場合は切り替えない
+
+            const currentIndex = sections.indexOf(state.section);
+            const nextIndex = (currentIndex + 1) % sections.length;
+            state.section = sections[nextIndex];
+
+            // 設定画面のセレクトボックスも同期させておく
+            document.getElementById('section-select').value = state.section;
+
+            // 1番ホールから表示（任意：そのホールのまま切り替えたいならholeはそのままでOK）
+            // state.hole = 1; 
+
+            render();
+        }
+
         async function loadServerCSV() {
             try {
                 const res = await fetch('courses.csv');
@@ -146,7 +166,7 @@
 
         function processData(text, msg) {
             if(parseCSV(text)) {
-                localStorage.setItem('golf_db_v5', text);
+                localStorage.setItem('golf_db_v6', text);
                 document.getElementById('status-msg').innerText = msg;
             }
         }
@@ -169,18 +189,14 @@
             return names.length > 0;
         }
 
-        // コースが選ばれたらセクションを更新
         function onCourseChange() {
             const course = document.getElementById('course-select').value;
             const secSel = document.getElementById('section-select');
             secSel.innerHTML = "";
-            
             if(course && courseData[course]) {
-                const sections = Object.keys(courseData[course]);
-                sections.forEach(s => {
+                Object.keys(courseData[course]).forEach(s => {
                     const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.innerText = s;
+                    opt.value = s; opt.innerText = s;
                     secSel.appendChild(opt);
                 });
             } else {
@@ -190,34 +206,27 @@
 
         function filterByKana(char) {
             const allCourses = Object.keys(courseData);
-            const filtered = (char === '全') ? allCourses : allCourses.filter(n => n.startsWith(char));
-            updateCourseDropdown(filtered);
+            updateCourseDropdown((char === '全') ? allCourses : allCourses.filter(n => n.startsWith(char)));
             toggleIndexPanel();
-            onCourseChange(); // セクションもリセット
+            onCourseChange();
         }
 
         function updateCourseDropdown(list) {
             const sel = document.getElementById('course-select');
-            sel.innerHTML = '<option value="">-- Select --</option>' + 
-                list.map(c => `<option value="${c}">${c}</option>`).join('');
-            if(list.length === 1) {
-                sel.value = list[0];
-                onCourseChange();
-            }
+            sel.innerHTML = '<option value="">-- Select --</option>' + list.map(c => `<option value="${c}">${c}</option>`).join('');
+            if(list.length === 1) { sel.value = list[0]; onCourseChange(); }
         }
 
         function toggleIndexPanel() { document.getElementById('index-panel').classList.toggle('active'); }
 
-        // ラウンド開始
         function startRound() {
             const selected = document.getElementById('course-select').value;
             const manual = document.getElementById('manual-course').value;
             state.course = selected || manual;
             state.section = document.getElementById('section-select').value;
-
             if(!state.course) return alert("コースを選択してください");
             if(!state.section && selected) return alert("セクションを選択してください");
-            if(!state.section) state.section = "OUT"; // Manual用
+            if(!state.section) state.section = "OUT";
 
             document.getElementById('settings-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
@@ -240,21 +249,19 @@
             const pars = (courseData[state.course] && courseData[state.course][state.section]) ? courseData[state.course][state.section] : [];
             document.getElementById('info-par').innerText = `PAR ${pars[state.hole-1] || '-'}`;
             
-            // 画像パス: img/コース名_セクション_ホール_view.jpg
             const imgPath = `img/${state.course}_${state.section}_${state.hole}_${state.view}.jpg`;
             document.getElementById('main-image').src = imgPath;
 
-            // ボタン表示更新
             for(let i=1; i<=9; i++) {
                 const el = document.getElementById(`btn-h${i}`);
-                el.className = `flex-shrink-0 w-12 h-12 rounded-lg font-bold text-lg ${i===state.hole ? 'bg-green-600 ring-2 ring-white text-white' : 'bg-gray-700 text-gray-300'}`;
+                el.className = `flex-shrink-0 w-12 h-12 rounded-lg font-bold text-lg ${i===state.hole ? 'bg-green-600 ring-2 ring-white text-white shadow-lg' : 'bg-gray-700 text-gray-400'}`;
             }
-            document.getElementById('btn-map').className = `flex-1 py-3 rounded-lg font-bold text-sm ${state.view==='map' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}`;
-            document.getElementById('btn-green').className = `flex-1 py-3 rounded-lg font-bold text-sm ${state.view==='green' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}`;
+            document.getElementById('btn-map').className = `flex-1 py-3 rounded-lg font-bold text-sm ${state.view==='map' ? 'bg-green-600 text-white shadow-inner' : 'bg-gray-700 text-gray-500'}`;
+            document.getElementById('btn-green').className = `flex-1 py-3 rounded-lg font-bold text-sm ${state.view==='green' ? 'bg-green-600 text-white shadow-inner' : 'bg-gray-700 text-gray-500'}`;
         }
 
         function handleImgError(el) {
-            el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222'/><text x='50%25' y='50%25' fill='%23555' font-size='14' text-anchor='middle'>No Image found</text></svg>`;
+            el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222'/><text x='50%25' y='50%25' fill='%23555' font-size='12' text-anchor='middle'>Image Not Found</text><text x='50%25' y='54%25' fill='%23333' font-size='10' text-anchor='middle'>${state.course}_${state.section}_H${state.hole}</text></svg>`;
         }
 
         function openFullscreen() {
@@ -264,7 +271,7 @@
         }
 
         function resetApp() {
-            if(confirm("設定とデータをリセットしますか？")) {
+            if(confirm("全データを削除してリセットしますか？")) {
                 localStorage.clear();
                 location.reload();
             }
