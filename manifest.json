@@ -4,13 +4,13 @@
   "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#000000",
-  "theme_color": "#1f2937",
+  "background_color": "#020617",
+  "theme_color": "#059669",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3516/3516140.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
