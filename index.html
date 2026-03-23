@@ -16,16 +16,13 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* 設定画面用ボタン */
         .btn-gray { background-color: #f9fafb; border: 1px solid #d1d5db; color: #374151; }
         .btn-green { background-color: #057a3d; color: white; }
         .btn-red { background-color: #d32f2f; color: white; }
         
-        /* プレー画面：下部メインボタン */
         .footer-btn-active { background-color: #057a3d !important; color: white !important; border: 1px solid #4ade80 !important; }
         .footer-btn-inactive { background-color: #1f2937 !important; color: #6b7280 !important; border: 1px solid transparent !important; }
         
-        /* セクション切り替えボタン（強調デザイン） */
         .section-badge-active {
             background-color: #fbbf24 !important;
             color: #000 !important;
@@ -47,15 +44,13 @@
         <!-- ヘッダー -->
         <header class="bg-gray-800 p-3 flex justify-between items-center border-b border-gray-700 flex-none">
             <div class="flex-1 px-2 overflow-hidden">
-                <h1 id="display-course" class="text-xs text-gray-400 truncate uppercase tracking-widest font-bold">COURSE NAME</h1>
+                <h1 id="display-course" class="text-sm text-gray-400 truncate font-bold">COURSE NAME</h1>
             </div>
             <button onclick="showSettings()" class="py-1 px-3 bg-gray-700 rounded-lg text-[10px] border border-gray-600 text-gray-300 font-black tracking-tighter uppercase">Settings</button>
         </header>
         
-        <!-- ホールナビ -->
         <nav class="bg-gray-800 flex-none border-b border-gray-900 overflow-x-auto no-scrollbar py-2 px-4 flex gap-3" id="hole-tabs"></nav>
 
-        <!-- メイン画像表示エリア -->
         <main class="flex-1 relative flex items-center justify-center overflow-hidden bg-black" onclick="openFullscreen()">
             <img id="main-image" src="" class="max-h-full max-w-full object-contain relative z-10" onerror="handleImgError(this)">
             <div class="absolute top-4 left-4 z-20 bg-black/60 p-3 rounded-xl border border-white/10 backdrop-blur-sm shadow-2xl">
@@ -67,9 +62,8 @@
         <!-- フッター -->
         <footer class="bg-gray-800 p-3 flex-none border-t border-gray-900 z-30">
             <div class="flex bg-gray-950 rounded-2xl p-1 gap-1 max-w-md mx-auto h-16 shadow-inner">
-                <!-- セクション切替ボタン -->
                 <button onclick="cycleSection()" id="btn-section-toggle" class="w-24 rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all shrink-0 section-badge-active">
-                    <span class="text-[8px] uppercase font-black opacity-70 leading-none mb-1 tracking-tighter">Section</span>
+                    <span class="text-[8px] uppercase font-black opacity-70 leading-none mb-1 tracking-tighter text-black">Section</span>
                     <span id="section-btn-label" class="text-sm font-black tracking-widest uppercase">OUT</span>
                 </button>
                 <button onclick="setView('map')" id="btn-map" class="flex-1 rounded-xl font-black text-xs transition-all footer-btn-active uppercase tracking-tighter">全体図</button>
@@ -78,7 +72,7 @@
         </footer>
     </div>
 
-    <!-- 設定画面 (SELECT SECTIONを削除) -->
+    <!-- 設定画面 -->
     <div id="settings-screen" class="fixed inset-0 bg-gray-100 z-[100] p-4 flex flex-col overflow-y-auto">
         <div class="max-w-md mx-auto w-full space-y-4 pt-2 pb-10 text-center">
             
@@ -94,13 +88,13 @@
                 <label class="text-[10px] font-bold text-gray-400 mb-1 block uppercase tracking-widest">SELECT COURSE</label>
                 <div class="flex gap-2 mb-2">
                     <button onclick="toggleIndexPanel()" class="w-1/4 py-4 rounded-xl btn-gray font-black text-lg shadow-sm">Index</button>
+                    <!-- 表示名のみ加工 -->
                     <select id="course-select" class="flex-1 py-4 px-3 rounded-xl btn-gray text-base shadow-sm outline-none font-bold truncate"></select>
                 </div>
                 <div id="index-panel" class="grid grid-cols-5 gap-1 bg-white p-2 rounded-xl border mb-2 shadow-inner"></div>
                 <input type="text" id="manual-course" placeholder="Course Name (Manual)" class="w-full py-4 px-4 rounded-xl btn-gray text-base shadow-sm outline-none mb-4 font-bold">
             </div>
 
-            <!-- START / RESET -->
             <div class="flex gap-2 pt-4">
                 <button onclick="startRound()" class="flex-1 py-5 btn-green rounded-2xl font-black text-2xl shadow-xl active:opacity-80 uppercase italic tracking-tighter">START ROUND</button>
                 <button onclick="resetApp()" class="w-1/3 py-5 btn-red rounded-2xl font-black text-lg shadow-xl active:opacity-80 uppercase tracking-tighter">RESET</button>
@@ -128,6 +122,12 @@
         let state = { course: "", section: "", hole: 1, view: "map" };
         const kana = ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', '全'];
 
+        // ★表示用コース名を生成する関数（"あ01_池田" -> "池田"）
+        function getDisplayName(fullName) {
+            if (!fullName) return "";
+            return fullName.includes('_') ? fullName.split('_').slice(1).join('_') : fullName;
+        }
+
         function init() {
             const container = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
@@ -146,11 +146,10 @@
                 b.onclick = () => filterByKana(char);
                 panel.appendChild(b);
             });
-            const saved = localStorage.getItem('golf_db_v12');
+            const saved = localStorage.getItem('golf_db_v13');
             if(saved) parseCSV(saved);
         }
 
-        // セクションをサイクル
         function cycleSection() {
             if(!state.course || !courseData[state.course]) return;
             const sections = Object.keys(courseData[state.course]);
@@ -174,7 +173,7 @@
 
         function processData(text, msg) {
             if(parseCSV(text)) {
-                localStorage.setItem('golf_db_v12', text);
+                localStorage.setItem('golf_db_v13', text);
                 document.getElementById('status-msg').innerText = msg;
             }
         }
@@ -201,7 +200,9 @@
 
         function updateCourseDropdown(list) {
             const sel = document.getElementById('course-select');
-            sel.innerHTML = '<option value="">-- Select --</option>' + list.map(c => `<option value="${c}">${c}</option>`).join('');
+            // valueはフルネーム、表示テキストはgetDisplayNameを使用
+            sel.innerHTML = '<option value="">-- Select --</option>' + 
+                list.map(c => `<option value="${c}">${getDisplayName(c)}</option>`).join('');
             if(list.length === 1) sel.value = list[0];
         }
 
@@ -210,16 +211,12 @@
         function startRound() {
             const selected = document.getElementById('course-select').value;
             state.course = selected || document.getElementById('manual-course').value;
-            
             if(!state.course) return alert("Select course");
-            
-            // 自動的に最初のセクションを選択
             if(courseData[state.course]) {
                 state.section = Object.keys(courseData[state.course])[0];
             } else {
                 state.section = "OUT";
             }
-
             document.getElementById('settings-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
             render();
@@ -234,11 +231,14 @@
         function setView(v) { state.view = v; render(); }
 
         function render() {
-            document.getElementById('display-course').innerText = state.course;
+            // 表示のみ getDisplayName を使用
+            document.getElementById('display-course').innerText = getDisplayName(state.course);
             document.getElementById('section-btn-label').innerText = state.section;
             document.getElementById('info-hole').innerText = `H${state.hole}`;
             const pars = (courseData[state.course] && courseData[state.course][state.section]) ? courseData[state.course][state.section] : [];
             document.getElementById('info-par').innerText = `PAR ${pars[state.hole-1] || '-'}`;
+            
+            // 画像パスは元の state.course (あ01_池田...) を使う
             document.getElementById('main-image').src = `img/${state.course}_${state.section}_${state.hole}_${state.view}.jpg`;
 
             for(let i=1; i<=9; i++) {
