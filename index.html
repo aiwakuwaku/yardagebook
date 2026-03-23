@@ -21,13 +21,13 @@
         .btn-green { background-color: #057a3d; color: white; }
         .btn-red { background-color: #d32f2f; color: white; }
         
-        /* プレー画面：下部メインボタン（全体図・グリーン） */
+        /* プレー画面：下部メインボタン */
         .footer-btn-active { background-color: #057a3d !important; color: white !important; border: 1px solid #4ade80 !important; }
         .footer-btn-inactive { background-color: #1f2937 !important; color: #6b7280 !important; border: 1px solid transparent !important; }
         
-        /* ★セクション切り替えボタンの特別スタイル★ */
+        /* セクション切り替えボタン（強調デザイン） */
         .section-badge-active {
-            background-color: #fbbf24 !important; /* 目立つイエロー/オレンジ */
+            background-color: #fbbf24 !important;
             color: #000 !important;
             font-weight: 900;
             border: 2px solid #fff !important;
@@ -44,7 +44,7 @@
 
     <!-- プレー画面 -->
     <div id="main-screen" class="flex-1 flex flex-col hidden overflow-hidden bg-black text-white">
-        <!-- ヘッダー (セクション名は非表示に) -->
+        <!-- ヘッダー -->
         <header class="bg-gray-800 p-3 flex justify-between items-center border-b border-gray-700 flex-none">
             <div class="flex-1 px-2 overflow-hidden">
                 <h1 id="display-course" class="text-xs text-gray-400 truncate uppercase tracking-widest font-bold">COURSE NAME</h1>
@@ -64,27 +64,21 @@
             </div>
         </main>
 
-        <!-- フッター (セクションボタンを強調) -->
+        <!-- フッター -->
         <footer class="bg-gray-800 p-3 flex-none border-t border-gray-900 z-30">
             <div class="flex bg-gray-950 rounded-2xl p-1 gap-1 max-w-md mx-auto h-16 shadow-inner">
-                
-                <!-- ★セクション切替ボタン：配色を強調★ -->
+                <!-- セクション切替ボタン -->
                 <button onclick="cycleSection()" id="btn-section-toggle" class="w-24 rounded-xl flex flex-col items-center justify-center active:scale-95 transition-all shrink-0 section-badge-active">
                     <span class="text-[8px] uppercase font-black opacity-70 leading-none mb-1 tracking-tighter">Section</span>
                     <span id="section-btn-label" class="text-sm font-black tracking-widest uppercase">OUT</span>
                 </button>
-                
-                <!-- 全体図ボタン -->
                 <button onclick="setView('map')" id="btn-map" class="flex-1 rounded-xl font-black text-xs transition-all footer-btn-active uppercase tracking-tighter">全体図</button>
-                
-                <!-- グリーンボタン -->
                 <button onclick="setView('green')" id="btn-green" class="flex-1 rounded-xl font-black text-xs transition-all footer-btn-inactive uppercase tracking-tighter">グリーン</button>
-                
             </div>
         </footer>
     </div>
 
-    <!-- 設定画面 -->
+    <!-- 設定画面 (SELECT SECTIONを削除) -->
     <div id="settings-screen" class="fixed inset-0 bg-gray-100 z-[100] p-4 flex flex-col overflow-y-auto">
         <div class="max-w-md mx-auto w-full space-y-4 pt-2 pb-10 text-center">
             
@@ -100,17 +94,13 @@
                 <label class="text-[10px] font-bold text-gray-400 mb-1 block uppercase tracking-widest">SELECT COURSE</label>
                 <div class="flex gap-2 mb-2">
                     <button onclick="toggleIndexPanel()" class="w-1/4 py-4 rounded-xl btn-gray font-black text-lg shadow-sm">Index</button>
-                    <select id="course-select" onchange="onCourseChange()" class="flex-1 py-4 px-3 rounded-xl btn-gray text-base shadow-sm outline-none font-bold truncate"></select>
+                    <select id="course-select" class="flex-1 py-4 px-3 rounded-xl btn-gray text-base shadow-sm outline-none font-bold truncate"></select>
                 </div>
                 <div id="index-panel" class="grid grid-cols-5 gap-1 bg-white p-2 rounded-xl border mb-2 shadow-inner"></div>
                 <input type="text" id="manual-course" placeholder="Course Name (Manual)" class="w-full py-4 px-4 rounded-xl btn-gray text-base shadow-sm outline-none mb-4 font-bold">
             </div>
 
-            <div class="text-left">
-                <label class="text-[10px] font-bold text-gray-400 mb-1 block uppercase tracking-widest">SELECT SECTION</label>
-                <select id="section-select" class="w-full py-4 px-4 rounded-xl btn-gray text-base shadow-sm outline-none font-bold uppercase"></select>
-            </div>
-
+            <!-- START / RESET -->
             <div class="flex gap-2 pt-4">
                 <button onclick="startRound()" class="flex-1 py-5 btn-green rounded-2xl font-black text-2xl shadow-xl active:opacity-80 uppercase italic tracking-tighter">START ROUND</button>
                 <button onclick="resetApp()" class="w-1/3 py-5 btn-red rounded-2xl font-black text-lg shadow-xl active:opacity-80 uppercase tracking-tighter">RESET</button>
@@ -156,16 +146,16 @@
                 b.onclick = () => filterByKana(char);
                 panel.appendChild(b);
             });
-            const saved = localStorage.getItem('golf_db_v11');
+            const saved = localStorage.getItem('golf_db_v12');
             if(saved) parseCSV(saved);
         }
 
+        // セクションをサイクル
         function cycleSection() {
             if(!state.course || !courseData[state.course]) return;
             const sections = Object.keys(courseData[state.course]);
             if(sections.length <= 1) return;
             state.section = sections[(sections.indexOf(state.section) + 1) % sections.length];
-            document.getElementById('section-select').value = state.section;
             render();
         }
 
@@ -184,7 +174,7 @@
 
         function processData(text, msg) {
             if(parseCSV(text)) {
-                localStorage.setItem('golf_db_v11', text);
+                localStorage.setItem('golf_db_v12', text);
                 document.getElementById('status-msg').innerText = msg;
             }
         }
@@ -203,30 +193,16 @@
             return names.length > 0;
         }
 
-        function onCourseChange() {
-            const course = document.getElementById('course-select').value;
-            const secSel = document.getElementById('section-select');
-            secSel.innerHTML = "";
-            if(course && courseData[course]) {
-                Object.keys(courseData[course]).forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s; opt.innerText = s;
-                    secSel.appendChild(opt);
-                });
-            } else { secSel.innerHTML = '<option value="">-- Select Section --</option>'; }
-        }
-
         function filterByKana(char) {
             const all = Object.keys(courseData);
             updateCourseDropdown((char === '全') ? all : all.filter(n => n.startsWith(char)));
             toggleIndexPanel();
-            onCourseChange();
         }
 
         function updateCourseDropdown(list) {
             const sel = document.getElementById('course-select');
             sel.innerHTML = '<option value="">-- Select --</option>' + list.map(c => `<option value="${c}">${c}</option>`).join('');
-            if(list.length === 1) { sel.value = list[0]; onCourseChange(); }
+            if(list.length === 1) sel.value = list[0];
         }
 
         function toggleIndexPanel() { document.getElementById('index-panel').classList.toggle('active'); }
@@ -234,9 +210,16 @@
         function startRound() {
             const selected = document.getElementById('course-select').value;
             state.course = selected || document.getElementById('manual-course').value;
-            state.section = document.getElementById('section-select').value;
+            
             if(!state.course) return alert("Select course");
-            if(!state.section) state.section = "OUT";
+            
+            // 自動的に最初のセクションを選択
+            if(courseData[state.course]) {
+                state.section = Object.keys(courseData[state.course])[0];
+            } else {
+                state.section = "OUT";
+            }
+
             document.getElementById('settings-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
             render();
