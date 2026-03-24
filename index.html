@@ -60,8 +60,8 @@
                     <span class="text-[8px] uppercase font-black opacity-60 leading-none mb-1 text-black">Section</span>
                     <span id="section-btn-label" class="text-xs font-black tracking-widest uppercase text-black">OUT</span>
                 </button>
-                <button onclick="setView('map')" id="btn-map" class="flex-1 rounded-xl font-black text-[10px] footer-btn-active uppercase tracking-widest">Map</button>
-                <button onclick="setView('green')" id="btn-green" class="flex-1 rounded-xl font-black text-[10px] footer-btn-inactive uppercase tracking-widest">Green</button>
+                <button onclick="setView('map')" id="btn-map" class="flex-1 rounded-xl font-black text-[10px] uppercase tracking-widest">Map</button>
+                <button onclick="setView('green')" id="btn-green" class="flex-1 rounded-xl font-black text-[10px] uppercase tracking-widest">Green</button>
             </div>
         </footer>
     </div>
@@ -69,7 +69,6 @@
     <!-- 設定画面 -->
     <div id="settings-screen" class="fixed inset-0 bg-slate-50 z-[100] p-6 flex flex-col overflow-y-auto">
         <div class="max-w-md mx-auto w-full pt-4 pb-12">
-            <!-- アイコン部分を削除し、タイトル周りを調整 -->
             <div class="flex flex-col items-center py-12">
                 <h1 class="text-4xl font-black text-slate-800 tracking-tighter italic uppercase text-center">GOLF YARDAGE</h1>
                 <div class="text-[10px] font-bold text-slate-400 tracking-[0.5em] uppercase mt-4 border-t border-slate-200 pt-4 w-40 mx-auto text-center">Digital Yardage Book</div>
@@ -110,7 +109,6 @@
     </div>
 
     <script>
-        // Service Workerの登録
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
@@ -118,7 +116,9 @@
         let courseData = {};
         let state = { course: "", section: "", hole: 1, view: "map" };
         const kana = ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', '全'];
+
         function getDisplayName(fullName) { if (!fullName) return ""; return fullName.includes('_') ? fullName.split('_').slice(1).join('_') : fullName; }
+        
         function init() {
             const container = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
@@ -133,14 +133,17 @@
             });
             const saved = localStorage.getItem('golf_db_v18'); if(saved) parseCSV(saved);
         }
+
         function cycleSection() {
             if(!state.course || !courseData[state.course]) return;
             const sections = Object.keys(courseData[state.course]); if(sections.length <= 1) return;
             state.section = sections[(sections.indexOf(state.section) + 1) % sections.length]; render();
         }
+
         async function loadServerCSV() { try { const res = await fetch('courses.csv'); processData(await res.text(), "Sync Complete"); } catch(e) { alert("Server Error"); } }
         function loadLocalCSV(input) { const reader = new FileReader(); reader.onload = (e) => processData(e.target.result, "Import Complete"); reader.readAsText(input.files[0]); }
         function processData(text, msg) { if(parseCSV(text)) { localStorage.setItem('golf_db_v18', text); document.getElementById('status-msg').innerText = msg; } }
+
         function parseCSV(csv) {
             const lines = csv.split(/\r?\n/); courseData = {}; let lastCourse = "";
             lines.forEach(line => {
@@ -150,38 +153,51 @@
             });
             const names = Object.keys(courseData); if(names.length > 0) updateCourseDropdown(names); return names.length > 0;
         }
+
         function filterByKana(char) { const all = Object.keys(courseData); updateCourseDropdown((char === '全') ? all : all.filter(n => n.startsWith(char))); toggleIndexPanel(); }
         function updateCourseDropdown(list) {
             const sel = document.getElementById('course-select'); sel.innerHTML = '<option value="">-- Choose Course --</option>' + list.map(c => `<option value="${c}">${getDisplayName(c)}</option>`).join('');
             if(list.length === 1) sel.value = list[0];
         }
+
         function toggleIndexPanel() { document.getElementById('index-panel').classList.toggle('active'); }
+        
         function startRound() {
             const selected = document.getElementById('course-select').value; if(!selected) return alert("Select course");
             state.course = selected; state.section = Object.keys(courseData[state.course])[0];
             document.getElementById('settings-screen').classList.add('hidden'); document.getElementById('main-screen').classList.remove('hidden'); render();
         }
+
         function showSettings() { document.getElementById('settings-screen').classList.remove('hidden'); document.getElementById('main-screen').classList.add('hidden'); }
         function setHole(h) { state.hole = h; render(); }
         function setView(v) { state.view = v; render(); }
+
         function render() {
             document.getElementById('display-course').innerText = getDisplayName(state.course);
             document.getElementById('section-btn-label').innerText = state.section;
             document.getElementById('info-hole').innerText = `H${state.hole}`;
+            
             const pars = (courseData[state.course] && courseData[state.course][state.section]) ? courseData[state.course][state.section] : [];
             document.getElementById('info-par').innerText = `PAR ${pars[state.hole-1] || '-'}`;
+            
             document.getElementById('main-image').src = `img/${state.course}_${state.section}_${state.hole}_${state.view}.jpg`;
+            
+            // ホールボタンのスタイル
             for(let i=1; i<=9; i++) {
                 const el = document.getElementById(`btn-h${i}`);
                 if(i === state.hole) el.className = "flex-shrink-0 w-12 h-12 rounded-2xl bg-emerald-600 font-black text-lg text-white ring-2 ring-emerald-400 scale-110";
                 else el.className = "flex-shrink-0 w-12 h-12 rounded-2xl bg-slate-800 font-black text-lg text-slate-500";
             }
-            document.getElementById('btn-map').className = `flex-1 rounded-xl font-black text-[10px] ${state.view==='map' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
-            document.getElementById('btn-green').className = `flex-1 rounded-xl font-black text-[10px] ${state.view==='green' ? 'footer-btn-inactive' : 'footer-btn-inactive'}`;
+
+            // ★View切り替えボタン（修正箇所）
+            document.getElementById('btn-map').className = `flex-1 rounded-xl font-black text-[10px] uppercase tracking-widest ${state.view === 'map' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
+            document.getElementById('btn-green').className = `flex-1 rounded-xl font-black text-[10px] uppercase tracking-widest ${state.view === 'green' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
         }
+
         function handleImgError(el) { el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23020617'/><text x='50%25' y='50%25' fill='%231e293b' font-size='12' text-anchor='middle'>NO IMAGE</text></svg>`; }
         function openFullscreen() { document.getElementById('fullscreen-image').src = document.getElementById('main-image').src; document.getElementById('fullscreen-overlay').classList.remove('hidden'); document.getElementById('fullscreen-overlay').classList.add('flex'); }
         function resetApp() { if(confirm("Reset all data?")) { localStorage.clear(); location.reload(); } }
+        
         init();
     </script>
 </body>
