@@ -69,14 +69,10 @@
     <!-- 設定画面 -->
     <div id="settings-screen" class="fixed inset-0 bg-slate-50 z-[100] p-6 flex flex-col overflow-y-auto">
         <div class="max-w-md mx-auto w-full pt-4 pb-12">
-            <div class="flex flex-col items-center py-8">
-                <div class="relative">
-                    <!-- アイコンの周囲に光彩をつけて背景に馴染ませる -->
-                    <div class="absolute inset-0 bg-emerald-200 blur-3xl opacity-30 rounded-full"></div>
-                    <img src="icon.png" class="relative w-24 h-24 rounded-3xl shadow-lg border border-white">
-                </div>
-                <h1 class="text-3xl font-black text-slate-800 tracking-tighter italic uppercase mt-4 text-center">GOLF YARDAGE</h1>
-                <div class="text-[9px] font-bold text-slate-400 tracking-[0.5em] uppercase mt-2 border-t border-slate-200 pt-2 w-32 mx-auto text-center">Digital Yardage Book</div>
+            <!-- アイコン部分を削除し、タイトル周りを調整 -->
+            <div class="flex flex-col items-center py-12">
+                <h1 class="text-4xl font-black text-slate-800 tracking-tighter italic uppercase text-center">GOLF YARDAGE</h1>
+                <div class="text-[10px] font-bold text-slate-400 tracking-[0.5em] uppercase mt-4 border-t border-slate-200 pt-4 w-40 mx-auto text-center">Digital Yardage Book</div>
             </div>
 
             <div class="glass-card p-6 space-y-6">
@@ -114,6 +110,7 @@
     </div>
 
     <script>
+        // Service Workerの登録
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
@@ -180,7 +177,7 @@
                 else el.className = "flex-shrink-0 w-12 h-12 rounded-2xl bg-slate-800 font-black text-lg text-slate-500";
             }
             document.getElementById('btn-map').className = `flex-1 rounded-xl font-black text-[10px] ${state.view==='map' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
-            document.getElementById('btn-green').className = `flex-1 rounded-xl font-black text-[10px] ${state.view==='green' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
+            document.getElementById('btn-green').className = `flex-1 rounded-xl font-black text-[10px] ${state.view==='green' ? 'footer-btn-inactive' : 'footer-btn-inactive'}`;
         }
         function handleImgError(el) { el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23020617'/><text x='50%25' y='50%25' fill='%231e293b' font-size='12' text-anchor='middle'>NO IMAGE</text></svg>`; }
         function openFullscreen() { document.getElementById('fullscreen-image').src = document.getElementById('main-image').src; document.getElementById('fullscreen-overlay').classList.remove('hidden'); document.getElementById('fullscreen-overlay').classList.add('flex'); }
