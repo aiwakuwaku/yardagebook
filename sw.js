@@ -1,9 +1,8 @@
-const CACHE_NAME = 'golf-yardage-v5';
+const CACHE_NAME = 'golf-yardage-v7';
 const ASSETS = [
   'index.html',
   'manifest.json',
-  'icon.png',
-  'https://cdn.tailwindcss.com'
+  'icon.png'
 ];
 
 self.addEventListener('install', (e) => {
