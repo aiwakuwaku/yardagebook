@@ -9,338 +9,317 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GolfYardage">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
 
     <style>
         :root {
-            --emerald-400: #34d399;
-            --emerald-600: #059669;
-            --slate-50:  #f8fafc;
-            --slate-100: #f1f5f9;
-            --slate-200: #e2e8f0;
-            --slate-400: #94a3b8;
-            --slate-500: #64748b;
+            --emerald: #059669;
             --slate-800: #1e293b;
             --slate-900: #0f172a;
             --slate-950: #020617;
         }
 
-        /* 全体レイアウト */
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            height: 100dvh; margin: 0; padding: 0; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--slate-950); display: flex; flex-direction: column;
+        /* 根本的なスクロール・クリック阻害の防止 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        html, body { 
+            height: 100%; width: 100%; margin: 0; padding: 0; 
+            overflow: hidden; background: var(--slate-950);
+            font-family: sans-serif; position: fixed; /* 画面全体のバウンス防止 */
         }
 
-        /* ユーティリティ */
-        .hidden { display: none !important; }
-        .flex { display: flex; }
-        .flex-1 { flex: 1; }
+        /* 垂直レイアウトの固定 */
+        .app-container {
+            display: flex; flex-direction: column; height: 100vh; height: 100dvh; width: 100%;
+        }
 
-        /* ヘッダー */
+        /* ヘッダー: 60px */
         header { 
             height: 60px; background: var(--slate-800); display: flex; 
             align-items: center; justify-content: space-between; padding: 0 15px;
-            border-bottom: 1px solid var(--slate-700); flex-shrink: 0; z-index: 100;
+            border-bottom: 1px solid #334155; z-index: 100; flex-shrink: 0;
         }
 
-        /* ホールナビ（ここを修正：確実に横スクロールさせる） */
-        #hole-tabs-container {
-            height: 70px; background: var(--slate-900); border-bottom: 1px solid #000;
-            overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
-            display: flex; align-items: center; padding: 0 15px; flex-shrink: 0; z-index: 90;
+        /* ホールナビ: 70px (確実にスクロールさせる設定) */
+        .hole-nav {
+            height: 70px; background: var(--slate-900); display: flex; 
+            align-items: center; padding: 0 10px; overflow-x: scroll; 
+            overflow-y: hidden; -webkit-overflow-scrolling: touch; 
+            border-bottom: 2px solid #000; z-index: 100; flex-shrink: 0;
         }
-        .hole-btn {
-            min-width: 50px; height: 50px; margin-right: 12px; border-radius: 12px;
-            border: none; font-size: 20px; font-weight: 900; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .hole-btn-active { background: var(--emerald-600); color: white; transform: scale(1.1); box-shadow: 0 0 10px var(--emerald-400); }
-        .hole-btn-inactive { background: var(--slate-800); color: var(--slate-500); }
-
-        /* メイン画像エリア */
-        main { 
-            flex: 1; position: relative; background: #000; overflow: hidden;
-            display: flex; align-items: center; justify-content: center; z-index: 10;
-        }
-        #main-image { max-width: 100%; max-height: 100%; object-fit: contain; }
-
-        /* ホール情報の浮きパネル */
-        .info-panel {
-            position: absolute; top: 15px; left: 15px; background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1); color: white; pointer-events: none; z-index: 20;
-        }
-
-        /* フッター */
-        footer { 
-            height: 100px; background: var(--slate-900); border-top: 1px solid var(--slate-800);
-            display: flex; align-items: flex-start; justify-content: center; padding-top: 15px;
-            padding-bottom: env(safe-area-inset-bottom); flex-shrink: 0; z-index: 100;
-        }
-        .control-bar {
-            background: var(--slate-950); width: 92%; max-width: 400px; height: 64px;
-            border-radius: 18px; display: flex; padding: 5px; gap: 5px;
-        }
-        .footer-btn { 
-            flex: 1; border-radius: 12px; border: none; font-weight: 900; font-size: 11px;
-            text-transform: uppercase; cursor: pointer; transition: 0.2s;
-        }
-        .footer-btn-active { background: var(--emerald-600); color: white; box-shadow: 0 0 8px var(--emerald-400); }
-        .footer-btn-inactive { background: var(--slate-800); color: var(--slate-500); }
+        .hole-nav::-webkit-scrollbar { display: none; }
         
-        .section-btn {
-            width: 90px; background: #f59e0b; color: #000; border-radius: 12px;
+        .hole-btn {
+            min-width: 50px; width: 50px; height: 50px; margin: 0 6px;
+            border-radius: 12px; border: none; font-size: 20px; font-weight: 900;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            cursor: pointer; transition: 0.2s;
+        }
+        .h-active { background: var(--emerald); color: white; transform: scale(1.05); box-shadow: 0 0 15px rgba(16,185,129,0.4); }
+        .h-inactive { background: var(--slate-800); color: #64748b; }
+
+        /* メインエリア: 残りの高さ */
+        main { 
+            flex: 1; background: #000; position: relative; 
+            display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; z-index: 10;
+        }
+        #main-image { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: auto; }
+
+        /* ホール情報の浮きパネル (クリックを邪魔しないように設定) */
+        .info-panel {
+            position: absolute; top: 15px; left: 15px; background: rgba(15, 23, 42, 0.9);
+            padding: 12px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            color: white; pointer-events: none; z-index: 20;
+        }
+
+        /* フッター: 110px (余裕を持たせる) */
+        footer { 
+            height: 110px; background: var(--slate-900); display: flex; 
+            align-items: center; justify-content: center; 
+            padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid #1e293b;
+            z-index: 100; flex-shrink: 0;
+        }
+        .ctrl-bar {
+            background: var(--slate-950); width: 92%; max-width: 420px; height: 65px;
+            border-radius: 20px; display: flex; padding: 6px; gap: 6px;
+        }
+        .f-btn { 
+            flex: 1; border-radius: 14px; border: none; font-weight: 900; 
+            font-size: 12px; cursor: pointer; transition: 0.2s;
+        }
+        .f-active { background: var(--emerald); color: white; }
+        .f-inactive { background: var(--slate-800); color: #475569; }
+        
+        .sec-btn {
+            width: 100px; background: #f59e0b; color: #000; border-radius: 14px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border: 2px solid #fff; font-weight: 900; cursor: pointer;
         }
 
-        /* 設定画面（全画面） */
+        /* 設定画面 */
         #settings-screen {
-            position: fixed; inset: 0; background: var(--slate-50); z-index: 200;
+            position: fixed; inset: 0; background: #f8fafc; z-index: 2000;
             padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center;
         }
-        .glass-card { 
-            background: white; border-radius: 24px; border: 1px solid var(--slate-200);
-            padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        .card { 
+            background: white; border-radius: 24px; border: 1px solid #e2e8f0;
+            padding: 25px; width: 100%; max-width: 400px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
-        #index-panel { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
-        #index-panel.active { display: grid; }
-        .kana-btn { height: 50px; border-radius: 10px; border: 1px solid var(--slate-200); background: white; font-weight: 800; cursor: pointer; }
+        .kana-grid { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .kana-grid.active { display: grid; }
+        .k-btn { height: 50px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; font-weight: 800; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- プレー画面 -->
-    <div id="main-screen" class="flex flex-1 flex-col hidden">
-        <header>
-            <h1 id="display-course" style="color:white; font-size:18px; font-style:italic; text-transform:uppercase; margin:0;">COURSE NAME</h1>
-            <button onclick="showSettings()" style="background:var(--emerald-600); color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:900; font-size:10px; cursor:pointer;">SETTINGS</button>
-        </header>
-        
-        <div id="hole-tabs-container">
-            <!-- 1-9のボタンはJSで生成 -->
+    <div id="app" class="app-container">
+        <!-- プレー画面 -->
+        <div id="main-screen" class="app-container hidden">
+            <header>
+                <div id="display-course" style="color:white; font-weight:900; font-style:italic; text-transform:uppercase; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; margin-right:10px;">COURSE</div>
+                <button onclick="openSettings()" style="background:var(--emerald); color:white; border:none; padding:8px 12px; border-radius:20px; font-weight:900; font-size:10px; flex-shrink:0;">SETTINGS</button>
+            </header>
+            
+            <div id="hole-tabs" class="hole-nav"></div>
+
+            <main onclick="toggleFullscreen()">
+                <img id="main-image" src="" onerror="handleImgError(this)">
+                <div class="info-panel">
+                    <div id="info-hole" style="font-size: 36px; font-weight: 900; font-style: italic; line-height: 1;">H1</div>
+                    <div id="info-par" style="font-size: 10px; font-weight: 900; color: #34d399; text-align: center; margin-top: 4px;">PAR -</div>
+                </div>
+            </main>
+
+            <footer>
+                <div class="ctrl-bar">
+                    <button onclick="changeSection()" id="btn-sec" class="sec-btn">
+                        <span style="font-size: 8px; opacity: 0.8;">SECTION</span>
+                        <span id="label-sec">OUT</span>
+                    </button>
+                    <button onclick="changeView('map')" id="btn-map" class="f-btn">MAP</button>
+                    <button onclick="changeView('green')" id="btn-green" class="f-btn">GREEN</button>
+                </div>
+            </footer>
         </div>
 
-        <main onclick="openFullscreen()">
-            <img id="main-image" src="" onerror="handleImgError(this)">
-            <div class="info-panel">
-                <div id="info-hole" style="font-size: 40px; font-weight: 900; font-style: italic; line-height: 1;">H1</div>
-                <div id="info-par" style="font-size: 10px; font-weight: 900; color: var(--emerald-400); text-align: center; margin-top: 5px; letter-spacing: 2px;">PAR -</div>
+        <!-- 設定画面 -->
+        <div id="settings-screen">
+            <div style="text-align: center; margin: 40px 0;">
+                <h1 style="font-size: 30px; font-weight: 900; font-style: italic; margin: 0; color: #1e293b;">GOLF YARDAGE</h1>
+                <p style="font-size: 10px; color: #94a3b8; letter-spacing: 5px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">DIGITAL YARDAGE BOOK</p>
             </div>
-        </main>
 
-        <footer>
-            <div class="control-bar">
-                <button onclick="cycleSection()" id="btn-section-toggle" class="section-btn">
-                    <span style="font-size: 8px; opacity: 0.7;">SECTION</span>
-                    <span id="section-btn-label">OUT</span>
-                </button>
-                <button onclick="setView('map')" id="btn-map" class="footer-btn">MAP</button>
-                <button onclick="setView('green')" id="btn-green" class="footer-btn">GREEN</button>
+            <div class="card">
+                <label style="font-size: 10px; font-weight: 900; color: #94a3b8; display: block; margin-bottom: 10px;">SELECT COURSE</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <button onclick="document.getElementById('k-grid').classList.toggle('active')" style="background: #1e293b; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 900; width: 80px;">INDEX</button>
+                    <select id="course-select" style="flex: 1; padding: 15px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; font-weight: 700; font-size: 14px;"></select>
+                </div>
+                <div id="k-grid" class="kana-grid"></div>
+
+                <button onclick="startRound()" style="width: 100%; background: var(--emerald); color: white; border: none; padding: 20px; border-radius: 15px; font-size: 20px; font-weight: 900; font-style: italic; margin-top: 10px;">START ROUND</button>
+                <button onclick="resetData()" style="width: 100%; background: none; color: #fb7185; border: none; padding: 15px; font-size: 10px; font-weight: 700; margin-top: 10px;">RESET ALL DATA</button>
             </div>
-        </footer>
+
+            <div style="margin-top: 20px; width: 100%; max-width: 400px; display: flex; gap: 10px;">
+                <button onclick="loadSrv()" style="flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; font-weight: 900;">LOAD SERVER</button>
+                <button onclick="document.getElementById('f-in').click()" style="flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; font-weight: 900;">LOAD LOCAL</button>
+            </div>
+            <input type="file" id="f-in" accept=".csv" class="hidden" onchange="loadLoc(this)">
+            <p id="msg" style="font-size: 9px; color: #94a3b8; margin-top: 15px; font-weight: 700;">READY</p>
+        </div>
     </div>
 
-    <!-- 設定画面 -->
-    <div id="settings-screen">
-        <div style="text-align: center; margin: 40px 0;">
-            <h1 style="font-size: 32px; font-weight: 900; font-style: italic; margin: 0; color: var(--slate-800);">GOLF YARDAGE</h1>
-            <p style="font-size: 10px; color: var(--slate-400); letter-spacing: 5px; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px; display: inline-block;">DIGITAL YARDAGE BOOK</p>
-        </div>
-
-        <div class="glass-card">
-            <label style="font-size: 10px; font-weight: 900; color: var(--slate-400); letter-spacing: 2px; display: block; margin-bottom: 10px;">SELECT COURSE</label>
-            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                <button onclick="toggleIndexPanel()" style="background: var(--slate-800); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 900; width: 80px; cursor: pointer;">INDEX</button>
-                <select id="course-select" style="flex: 1; padding: 15px; border-radius: 12px; background: var(--slate-100); border: 1px solid var(--slate-200); font-weight: 700;"></select>
-            </div>
-            <div id="index-panel"></div>
-
-            <button onclick="startRound()" style="width: 100%; background: var(--emerald-600); color: white; border: none; padding: 20px; border-radius: 15px; font-size: 20px; font-weight: 900; font-style: italic; cursor: pointer; margin-top: 10px;">START ROUND</button>
-            <button onclick="resetApp()" style="width: 100%; background: none; color: #fb7185; border: none; padding: 15px; font-size: 10px; font-weight: 700; cursor: pointer; margin-top: 10px;">RESET ALL DATA</button>
-        </div>
-
-        <div style="margin-top: 20px; width: 100%; max-width: 400px; display: flex; gap: 10px;">
-            <button onclick="loadServerCSV()" style="flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; font-weight: 900; cursor: pointer;">LOAD SERVER</button>
-            <button onclick="document.getElementById('file-input').click()" style="flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; font-weight: 900; cursor: pointer;">LOAD LOCAL</button>
-        </div>
-        <input type="file" id="file-input" accept=".csv" class="hidden" onchange="loadLocalCSV(this)">
-        <p id="status-msg" style="font-size: 9px; color: var(--slate-400); margin-top: 15px; font-weight: 700;">READY</p>
-    </div>
-
-    <!-- 全画面表示オーバーレイ -->
-    <div id="fullscreen-overlay" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:300; display:flex; align-items:center; justify-content:center;" onclick="this.classList.add('hidden')">
-        <img id="fullscreen-image" src="" style="width: 100%; height: 100%; object-fit: contain;">
+    <!-- 全画面用オーバーレイ -->
+    <div id="fs-overlay" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:3000; display:flex; align-items:center; justify-content:center;" onclick="this.classList.add('hidden')">
+        <img id="fs-img" src="" style="width: 100%; height: 100%; object-fit: contain;">
     </div>
 
     <script>
-        // 状態管理
-        let courseData = {};
-        let state = { course: "", section: "", hole: 1, view: "map" };
+        // --- データ保持 ---
+        let db = {};
+        let st = { course: "", sec: "", hole: 1, view: "map" };
 
-        // 初期化
-        window.onload = () => {
-            if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+        // --- 初期化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            if ('serviceWorker' in navigator) { 
+                navigator.serviceWorker.register('sw.js?v=2').then(reg => {
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                location.reload(); // 更新があったら自動リロード
+                            }
+                        };
+                    };
+                });
+            }
             
-            // ホールボタン生成
-            const container = document.getElementById('hole-tabs-container');
+            // ホールボタン
+            const tabs = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
-                const btn = document.createElement('button');
-                btn.id = `btn-h${i}`;
-                btn.className = "hole-btn hole-btn-inactive";
-                btn.innerText = i;
-                btn.onclick = (e) => { e.stopPropagation(); setHole(i); };
-                container.appendChild(btn);
+                const b = document.createElement('button');
+                b.className = "hole-btn h-inactive";
+                b.id = `hbtn-${i}`;
+                b.innerText = i;
+                b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); clickHole(i); };
+                tabs.appendChild(b);
             }
 
-            // 50音ボタン生成
+            // 50音
             const kana = ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', '全'];
-            const panel = document.getElementById('index-panel');
-            kana.forEach(char => {
+            const grid = document.getElementById('k-grid');
+            kana.forEach(k => {
                 const b = document.createElement('button');
-                b.className = "kana-btn";
-                b.innerText = char;
-                b.onclick = () => filterByKana(char);
-                panel.appendChild(b);
+                b.className = "k-btn";
+                b.innerText = k;
+                b.onclick = () => filterKana(k);
+                grid.appendChild(b);
             });
 
-            // 保存データの読み込み
             const saved = localStorage.getItem('golf_db_v18');
-            if(saved) parseCSV(saved);
-        };
+            if(saved) parse(saved);
+        });
 
-        // コース名表示用
-        function getDisplayName(name) { return name.includes('_') ? name.split('_').slice(1).join('_') : name; }
-
-        // CSV解析
-        function parseCSV(csv) {
+        // --- ロジック ---
+        function parse(csv) {
             const lines = csv.split(/\r?\n/);
-            courseData = {};
-            let currentCourse = "";
-            lines.forEach(line => {
-                if(!line.trim()) return;
-                const cols = line.split(',').map(c => c.trim());
-                if(cols.includes('H1')) {
-                    currentCourse = cols[0];
-                    courseData[currentCourse] = {};
-                } else if(currentCourse && cols.length >= 10 && cols[1] !== "") {
-                    courseData[currentCourse][cols[0]] = cols.slice(1, 10).map(Number);
-                }
+            db = {}; let cur = "";
+            lines.forEach(l => {
+                if(!l.trim()) return;
+                const c = l.split(',').map(s => s.trim());
+                if(c.includes('H1')) { cur = c[0]; db[cur] = {}; }
+                else if(cur && c.length >= 10 && c[1] !== "") { db[cur][c[0]] = c.slice(1, 10).map(Number); }
             });
-            const names = Object.keys(courseData);
-            if(names.length > 0) updateDropdown(names);
-            return names.length > 0;
+            const names = Object.keys(db);
+            if(names.length > 0) buildSelect(names);
         }
 
-        function updateDropdown(list) {
-            const sel = document.getElementById('course-select');
-            sel.innerHTML = '<option value="">-- CHOOSE --</option>' + 
-                list.map(c => `<option value="${c}">${getDisplayName(c)}</option>`).join('');
+        function buildSelect(list) {
+            const s = document.getElementById('course-select');
+            s.innerHTML = '<option value="">-- CHOOSE --</option>' + 
+                list.map(n => `<option value="${n}">${n.includes('_') ? n.split('_').slice(1).join('_') : n}</option>`).join('');
         }
 
-        function filterByKana(char) {
-            const all = Object.keys(courseData);
-            updateDropdown(char === '全' ? all : all.filter(n => n.startsWith(char)));
-            toggleIndexPanel();
+        function filterKana(k) {
+            const all = Object.keys(db);
+            buildSelect(k === '全' ? all : all.filter(n => n.startsWith(k)));
+            document.getElementById('k-grid').classList.remove('active');
         }
 
-        function toggleIndexPanel() { document.getElementById('index-panel').classList.toggle('active'); }
-
-        // ラウンド開始
         function startRound() {
-            const val = document.getElementById('course-select').value;
-            if(!val) return alert("Select a course");
-            state.course = val;
-            state.section = Object.keys(courseData[val])[0];
-            state.hole = 1;
-            state.view = "map";
+            const c = document.getElementById('course-select').value;
+            if(!c) return alert("Select course");
+            st.course = c;
+            st.sec = Object.keys(db[c])[0];
+            st.hole = 1; st.view = "map";
             document.getElementById('settings-screen').classList.add('hidden');
             document.getElementById('main-screen').classList.remove('hidden');
-            render();
+            ui();
         }
 
-        function showSettings() {
+        function openSettings() {
             document.getElementById('settings-screen').classList.remove('hidden');
             document.getElementById('main-screen').classList.add('hidden');
         }
 
-        // --- 切り替え機能 ---
-
-        function setHole(h) {
-            console.log("Hole selected:", h);
-            state.hole = h;
-            render();
+        function clickHole(n) { st.hole = n; ui(); }
+        function changeView(v) { st.view = v; ui(); }
+        function changeSection() {
+            const secs = Object.keys(db[st.course]);
+            if(secs.length <= 1) return;
+            st.sec = secs[(secs.indexOf(st.sec) + 1) % secs.length];
+            ui();
         }
 
-        function setView(v) {
-            console.log("View selected:", v);
-            state.view = v;
-            render();
-        }
-
-        function cycleSection() {
-            const sections = Object.keys(courseData[state.course]);
-            if(sections.length <= 1) return;
-            let idx = sections.indexOf(state.section);
-            state.section = sections[(idx + 1) % sections.length];
-            console.log("Section cycled:", state.section);
-            render();
-        }
-
-        // 表示の更新
-        function render() {
-            document.getElementById('display-course').innerText = getDisplayName(state.course);
-            document.getElementById('section-btn-label').innerText = state.section;
-            document.getElementById('info-hole').innerText = `H${state.hole}`;
+        // --- UI更新 (描画を一本化) ---
+        function ui() {
+            console.log("Rendering UI:", st); // デバッグ用ログ
             
-            const pars = courseData[state.course][state.section] || [];
-            document.getElementById('info-par').innerText = `PAR ${pars[state.hole-1] || '-'}`;
+            document.getElementById('display-course').innerText = st.course.includes('_') ? st.course.split('_').slice(1).join('_') : st.course;
+            document.getElementById('label-sec').innerText = st.sec;
+            document.getElementById('info-hole').innerText = `H${st.hole}`;
             
-            // 画像パス
-            const imgPath = `img/${state.course}_${state.section}_${state.hole}_${state.view}.jpg`;
-            document.getElementById('main-image').src = imgPath;
+            const pars = db[st.course][st.sec] || [];
+            document.getElementById('info-par').innerText = `PAR ${pars[st.hole-1] || '-'}`;
             
-            // ホールボタンのスタイル
+            // 画像
+            document.getElementById('main-image').src = `img/${st.course}_${st.sec}_${st.hole}_${st.view}.jpg?v=${new Date().getTime()}`;
+            
+            // ボタン色
             for(let i=1; i<=9; i++) {
-                const btn = document.getElementById(`btn-h${i}`);
-                if(btn) btn.className = (i === state.hole) ? "hole-btn hole-btn-active" : "hole-btn hole-btn-inactive";
+                const b = document.getElementById(`hbtn-${i}`);
+                b.className = (i === st.hole) ? "hole-btn h-active" : "hole-btn h-inactive";
             }
-
-            // フッターボタンのスタイル
-            document.getElementById('btn-map').className = `footer-btn ${state.view === 'map' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
-            document.getElementById('btn-green').className = `footer-btn ${state.view === 'green' ? 'footer-btn-active' : 'footer-btn-inactive'}`;
+            document.getElementById('btn-map').className = `f-btn ${st.view === 'map' ? 'f-active' : 'f-inactive'}`;
+            document.getElementById('btn-green').className = `f-btn ${st.view === 'green' ? 'f-active' : 'f-inactive'}`;
         }
 
-        // CSV読み込み
-        async function loadServerCSV() { 
+        // --- その他 ---
+        async function loadSrv() { 
             try { 
-                const res = await fetch('courses.csv'); 
-                const text = await res.text();
-                if(parseCSV(text)) {
-                    localStorage.setItem('golf_db_v18', text);
-                    document.getElementById('status-msg').innerText = "SYNC COMPLETE";
-                }
-            } catch(e) { alert("Server Load Failed"); } 
+                const res = await fetch('courses.csv');
+                const txt = await res.text();
+                parse(txt); localStorage.setItem('golf_db_v18', txt);
+                document.getElementById('msg').innerText = "LOADED FROM SERVER";
+            } catch(e) { alert("Load Failed"); } 
         }
-
-        function loadLocalCSV(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if(parseCSV(e.target.result)) {
-                    localStorage.setItem('golf_db_v18', e.target.result);
-                    document.getElementById('status-msg').innerText = "IMPORT COMPLETE";
-                }
-            };
-            reader.readAsText(input.files[0]);
+        function loadLoc(i) {
+            const r = new FileReader();
+            r.onload = (e) => { parse(e.target.result); localStorage.setItem('golf_db_v18', e.target.result); document.getElementById('msg').innerText = "LOADED LOCAL"; };
+            r.readAsText(i.files[0]);
         }
-
-        function handleImgError(el) { el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23020617'/><text x='50%25' y='50%25' fill='%231e293b' font-size='14' text-anchor='middle' font-family='sans-serif' font-weight='900'>NO IMAGE</text></svg>`; }
-        function openFullscreen() { document.getElementById('fullscreen-image').src = document.getElementById('main-image').src; document.getElementById('fullscreen-overlay').classList.remove('hidden'); }
-        function resetApp() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
+        function handleImgError(el) { el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23020617'/><text x='50%25' y='50%25' fill='%231e293b' font-size='16' text-anchor='middle' font-weight='900'>NO IMAGE</text></svg>`; }
+        function toggleFullscreen() { 
+            const img = document.getElementById('main-image').src;
+            if(img.startsWith('data:')) return;
+            document.getElementById('fs-img').src = img;
+            document.getElementById('fs-overlay').classList.remove('hidden');
+        }
+        function resetData() { if(confirm("Clear All?")) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
