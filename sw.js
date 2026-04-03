@@ -1,8 +1,8 @@
-const CACHE_NAME = 'golf-yardage-v9'; // バージョンアップ
+const CACHE_NAME = 'golf-yardage-v11';
 const ASSETS = [
   'index.html',
-  'manifest.json?v=2',
-  'icon.png?v=2'
+  'manifest.json?v=11',
+  'app-icon.png'
 ];
 
 self.addEventListener('install', (e) => {
@@ -18,8 +18,7 @@ self.addEventListener('activate', (e) => {
       keys.map(key => {
         if (key !== CACHE_NAME) return caches.delete(key);
       })
-    ))
-    .then(() => self.clients.claim())
+    )).then(() => self.clients.claim())
   );
 });
 
