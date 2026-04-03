@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Golf Yardage</title>
     
-    <link rel="manifest" href="manifest.json">
+    <!-- バージョンを付与してキャッシュを回避 -->
+    <link rel="manifest" href="manifest.json?v=2">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png?v=2">
+    <link rel="icon" type="image/png" href="icon.png?v=2">
 
     <style>
         :root {
@@ -20,35 +21,31 @@
             --slate-950: #020617;
         }
 
-        /* 画面全体の基本設定 */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { 
             height: 100%; width: 100%; margin: 0; padding: 0; 
-            background: #000; /* PC/Chromebookでは背景を黒にしてアプリを際立たせる */
+            background: #000; 
             font-family: sans-serif; overflow: hidden;
-            display: flex; justify-content: center; /* PCで中央寄せ */
+            display: flex; justify-content: center;
         }
 
-        /* アプリ本体のコンテナ（スマホサイズを維持） */
         .app-wrap {
             width: 100%;
-            max-width: 480px; /* スマホのような見た目を強制 */
+            max-width: 480px;
             height: 100%;
             background: var(--slate-950);
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8); /* PCでの浮遊感 */
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
 
-        /* ヘッダー */
         header { 
             height: 60px; background: var(--slate-800); display: flex; 
             align-items: center; justify-content: space-between; padding: 0 15px;
             border-bottom: 1px solid #334155; flex-shrink: 0; z-index: 100;
         }
 
-        /* ホールナビ（横スクロール） */
         .hole-nav {
             height: 70px; background: var(--slate-900); display: flex; 
             align-items: center; padding: 0 10px; overflow-x: scroll; 
@@ -66,7 +63,6 @@
         .h-active { background: var(--emerald); color: white; transform: scale(1.05); }
         .h-inactive { background: var(--slate-800); color: #64748b; }
 
-        /* 画像表示エリア */
         main { 
             flex: 1; background: #000; position: relative; 
             display: flex; align-items: center; justify-content: center; 
@@ -80,7 +76,6 @@
             color: white; pointer-events: none; z-index: 20;
         }
 
-        /* フッター */
         footer { 
             height: 100px; background: var(--slate-900); display: flex; 
             align-items: center; justify-content: center; 
@@ -104,7 +99,6 @@
             border: 1px solid #fff; font-weight: 900; cursor: pointer;
         }
 
-        /* 設定画面 */
         #settings-screen {
             position: absolute; inset: 0; background: #f1f5f9; z-index: 2000;
             padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center;
@@ -114,12 +108,11 @@
             padding: 20px; width: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
         
-        /* コース選択エリアの修正：はみ出し防止 */
         .select-row { 
             display: flex; gap: 8px; width: 100%; margin-bottom: 15px;
         }
         #course-select { 
-            flex: 1; min-width: 0; /* ← これがはみ出しを防ぐ重要プロパティ */
+            flex: 1; min-width: 0;
             padding: 12px; border-radius: 12px; background: #f8fafc; 
             border: 1px solid #e2e8f0; font-weight: 700; font-size: 16px;
         }
@@ -134,7 +127,6 @@
 <body>
 
     <div class="app-wrap">
-        <!-- プレー画面 -->
         <div id="main-screen" class="hidden" style="display:contents;">
             <header>
                 <div id="display-course" style="color:white; font-weight:900; font-style:italic; text-transform:uppercase; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">COURSE</div>
@@ -163,7 +155,6 @@
             </footer>
         </div>
 
-        <!-- 設定画面 -->
         <div id="settings-screen">
             <div style="text-align: center; margin: 30px 0;">
                 <h1 style="font-size: 28px; font-weight: 900; font-style: italic; margin: 0; color: #1e293b;">GOLF YARDAGE</h1>
@@ -191,7 +182,6 @@
         </div>
     </div>
 
-    <!-- 全画面オーバーレイ -->
     <div id="fs-overlay" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:3000; display:flex; align-items:center; justify-content:center;" onclick="this.classList.add('hidden')">
         <img id="fs-img" src="" style="width: 100%; height: 100%; object-fit: contain;">
     </div>
@@ -201,7 +191,20 @@
         let st = { course: "", sec: "", hole: 1, view: "map" };
 
         window.addEventListener('DOMContentLoaded', () => {
-            if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=3'); }
+            // Service Worker の更新をチェック
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js?v=9').then(reg => {
+                    reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // 新しいSWがインストールされたらリロードを促すか自動リロード
+                                location.reload();
+                            }
+                        };
+                    };
+                });
+            }
             
             const tabs = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
