@@ -1,8 +1,8 @@
-const CACHE_NAME = 'golf-yardage-v13';
+const CACHE_NAME = 'golf-yardage-v14';
 const ASSETS = [
-  'index.html?v=2',
-  'manifest.json?v=13',
-  'icon.png'
+  'index.html?v=14',
+  'manifest.json?v=14',
+  'icon.png?v=14'
 ];
 
 self.addEventListener('install', (e) => {

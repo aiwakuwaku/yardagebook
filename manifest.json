@@ -1,20 +1,21 @@
 {
-  "name": "Golf Yardage",
+  "id": "golf-yardage-new-v1",
+  "name": "Golf Yardage ",
   "short_name": "Yardage",
-  "start_url": "index.html?v=2",
+  "start_url": "index.html?v=14",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#020617",
   "theme_color": "#059669",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon.png?v=14",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon.png",
+      "src": "icon.png?v=14",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
