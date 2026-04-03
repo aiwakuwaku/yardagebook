@@ -1,14 +1,19 @@
-const CACHE_NAME = 'golf-yardage-v11';
+const CACHE_NAME = 'golf-yardage-v12';
 const ASSETS = [
   'index.html',
-  'manifest.json?v=11',
-  'app-icon.png'
+  'manifest.json',
+  'icon.png'
 ];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-    .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(ASSETS).catch(err => {
+          console.error('キャッシュの追加に失敗しました。ファイルが存在するか確認してください:', err);
+        });
+      })
+      .then(() => self.skipWaiting())
   );
 });
 

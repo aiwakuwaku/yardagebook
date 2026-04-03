@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Golf Yardage</title>
     
-    <link rel="manifest" href="manifest.json?v=11">
+    <link rel="manifest" href="manifest.json?v=12">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="app-icon.png">
-    <link rel="icon" type="image/png" href="app-icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
 
     <style>
         :root { --emerald: #059669; --slate-800: #1e293b; --slate-900: #0f172a; --slate-950: #020617; }
@@ -87,7 +87,7 @@
     <script>
         let db = {}; let st = { course: "", sec: "", hole: 1, view: "map" };
         window.addEventListener('DOMContentLoaded', () => {
-            if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=11'); }
+            if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=12'); }
             const tabs = document.getElementById('hole-tabs');
             for(let i=1; i<=9; i++) {
                 const b = document.createElement('button'); b.className = "hole-btn h-inactive"; b.id = `hbtn-${i}`; b.innerText = i;
