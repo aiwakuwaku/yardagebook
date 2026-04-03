@@ -75,10 +75,13 @@
                 </div>
                 <div id="k-grid" class="kana-grid"></div>
                 <button onclick="startRound()" style="width: 100%; background: var(--emerald); color: white; border: none; padding: 18px; border-radius: 15px; font-size: 18px; font-weight: 900;">START ROUND</button>
+                <button onclick="resetData()" style="width: 100%; background: none; color: #fb7185; border: none; padding: 12px; font-size: 10px; font-weight: 700; margin-top: 10px;">RESET ALL DATA</button>
             </div>
             <div style="margin-top: 20px; width: 100%; display: flex; gap: 10px;">
                 <button onclick="loadSrv()" style="flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; font-weight: 900;">LOAD SERVER</button>
+                <button onclick="document.getElementById('f-in').click()" style="flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 12px; font-size: 10px; font-weight: 900;">LOAD LOCAL</button>
             </div>
+            <input type="file" id="f-in" accept=".csv" class="hidden" onchange="loadLoc(this)">
             <p id="msg" style="font-size: 9px; color: #94a3b8; margin-top: 15px; font-weight: 700;">READY</p>
         </div>
     </div>
@@ -119,7 +122,20 @@
             document.getElementById('btn-map').className = `f-btn ${st.view === 'map' ? 'f-active' : 'f-inactive'}`;
             document.getElementById('btn-green').className = `f-btn ${st.view === 'green' ? 'f-active' : 'f-inactive'}`;
         }
-        async function loadSrv() { try { const res = await fetch('courses.csv'); const txt = await res.text(); parse(txt); localStorage.setItem('golf_db_v18', txt); document.getElementById('msg').innerText = "LOADED"; } catch(e) { alert("Fail"); } }
+        async function loadSrv() { try { const res = await fetch('courses.csv'); const txt = await res.text(); parse(txt); localStorage.setItem('golf_db_v18', txt); document.getElementById('msg').innerText = "LOADED SERVER"; } catch(e) { alert("Fail"); } }
+        
+        function loadLoc(i) {
+            const r = new FileReader();
+            r.onload = (e) => { 
+                const txt = e.target.result;
+                parse(txt); 
+                localStorage.setItem('golf_db_v18', txt); 
+                document.getElementById('msg').innerText = "LOADED LOCAL"; 
+            };
+            r.readAsText(i.files[0]);
+        }
+        function resetData() { if(confirm("Clear All?")) { localStorage.clear(); location.reload(); } }
+
         function handleImgError(el) { el.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23020617'/><text x='50%25' y='50%25' fill='%231e293b' font-size='16' text-anchor='middle'>NO IMAGE</text></svg>`; }
         function toggleFullscreen() { const img = document.getElementById('main-image').src; if(img.startsWith('data:')) return; document.getElementById('fs-img').src = img; document.getElementById('fs-overlay').classList.remove('hidden'); }
     </script>
